@@ -15,7 +15,15 @@ export class PostService {
     private cloudinary: CloudinaryService,
   ) {}
 
-  async newPost(userId: string, data: any, file: Express.Multer.File) {
+  async newPost(
+    userId: string,
+    data: { category: string; content: string },
+    file: Express.Multer.File,
+  ) {
+    if (!mongoose.isValidObjectId(data.category))
+      return new NotFoundException('Category not found'
+    );
+    
     const postImage = await this.cloudinary.uploadImage(file);
 
     const post = { ...data, userId, Image: postImage.url };

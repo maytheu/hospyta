@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   FileTypeValidator,
+  HttpCode,
+  HttpStatus,
   ParseFilePipe,
   Post,
   UploadedFile,
@@ -15,6 +17,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @HttpCode(HttpStatus.OK)
   @Post('register')
   @UseInterceptors(FileInterceptor('image'))
   register(
