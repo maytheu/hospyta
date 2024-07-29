@@ -54,6 +54,7 @@ export class PostController {
   updatePost(
     @Body() updatePostDto: UpdatePostDto,
     @Param() id: string,
+    @Req() req: any,
     @UploadedFile(
       new ParseFilePipe({
         validators: [new FileTypeValidator({ fileType: 'image/*' })],
@@ -61,13 +62,13 @@ export class PostController {
     )
     file: Express.Multer.File,
   ) {
-    return this.postService.updatePost(id, updatePostDto, file);
+    return this.postService.updatePost(id, updatePostDto, req.user, file);
   }
 
   @Delete(':id')
   @UseGuards(AuthGuard)
-  deletePost(@Param() id: string) {
-    return this.postService.deletePost(id);
+  deletePost(@Param() id: string, @Req() req: any) {
+    return this.postService.deletePost(id, req.user);
   }
 
   @Post(':postId/reaction/:reaction')

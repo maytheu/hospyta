@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
@@ -47,9 +51,16 @@ export class PostService {
       .populate({ path: 'category', select: 'name' });
   }
 
-  async updatePost(postId: string, data: any, file?: Express.Multer.File) {
+  async updatePost(
+    postId: string,
+    data: any,
+    userId: string,
+    file?: Express.Multer.File,
+  ) {
     if (!mongoose.isValidObjectId(postId))
       return new NotFoundException('Post not found');
+
+    this.verifyUser(userId, postId);
 
     if (file) data.image = (await this.cloudinary.uploadImage(file)).url;
     await this.postModel.findByIdAndDelete(postId, { data });
@@ -57,9 +68,11 @@ export class PostService {
     return { message: 'Post updated ' };
   }
 
-  async deletePost(postId: string) {
+  async deletePost(postId: string, userId: string) {
     if (!mongoose.isValidObjectId(postId))
       return new NotFoundException('Post not found');
+
+    this.verifyUser(userId, postId);
 
     await this.postModel.findByIdAndDelete(postId, { isDeleted: true });
 
@@ -121,5 +134,12 @@ export class PostService {
     }
 
     return { message: 'Comment added successfully' };
+  }
+
+  protected async verifyUser(userId: string, postId: string) {
+    const user = new Types.ObjectId(userId);
+    const post = await this.postModel.findById(postId, 'user');
+    if (post.user !== user)
+      return new ForbiddenException('Operation not allowed');
   }
 }
