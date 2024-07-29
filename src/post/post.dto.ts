@@ -11,7 +11,7 @@ export class NewPostDto {
 
 export class UpdatePostDto extends PartialType(NewPostDto) {}
 
-export class CommemntDto {
+export class CommentDto {
   @IsNotEmpty()
   comment: string;
 }

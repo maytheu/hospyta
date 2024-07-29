@@ -21,9 +21,8 @@ export class PostService {
     file: Express.Multer.File,
   ) {
     if (!mongoose.isValidObjectId(data.category))
-      return new NotFoundException('Category not found'
-    );
-    
+      return new NotFoundException('Category not found');
+
     const postImage = await this.cloudinary.uploadImage(file);
 
     const post = { ...data, userId, Image: postImage.url };
@@ -97,7 +96,7 @@ export class PostService {
     postId: string,
     userId: string,
     comment: string,
-    commentId: string,
+    commentId?: string,
   ) {
     if (!mongoose.isValidObjectId(postId))
       return new NotFoundException('Post not found');

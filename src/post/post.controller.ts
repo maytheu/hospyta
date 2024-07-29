@@ -1,20 +1,22 @@
 import {
   Body,
   Controller,
+  Delete,
   FileTypeValidator,
   Get,
   Param,
   ParseFilePipe,
   Post,
+  Put,
   Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { NewPostDto } from './post.dto';
+import { CommentDto, NewPostDto, UpdatePostDto } from './post.dto';
 import { PostService } from './post.service';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard, UserGuard } from 'src/auth/auth.guard';
 import { Request } from 'express';
 
 @Controller('post')
@@ -45,5 +47,63 @@ export class PostController {
   @Get(':id')
   post(@Param('id') id: string) {
     return this.postService.post(id);
+  }
+
+  @Put('update/:id')
+  @UseGuards(AuthGuard)
+  updatePost(
+    @Body() updatePostDto: UpdatePostDto,
+    @Param() id: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new FileTypeValidator({ fileType: 'image/*' })],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return this.postService.updatePost(id, updatePostDto, file);
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard)
+  deletePost(@Param() id: string) {
+    return this.postService.deletePost(id);
+  }
+
+  @Post(':postId/reaction/:reaction')
+  @UseGuards(AuthGuard)
+  postReaction(
+    @Param() reaction: string,
+    @Param() post: string,
+    @Req() req: any,
+  ) {
+    const react = reaction === 'true' ? true : false;
+    return this.postService.postReaction(req.user, post, react);
+  }
+
+  @Post(':postId/comment')
+  @UseGuards(AuthGuard)
+  addComment(
+    @Param() post: string,
+    @Req() req: any,
+    @Body() commentDto: CommentDto,
+  ) {
+    return this.postService.addComment(post, req.user, commentDto.comment);
+  }
+
+  @Post(':postId/comment/:commentId')
+  @UseGuards(AuthGuard)
+  addReply(
+    @Param() post: string,
+    @Param() commentId: string,
+    @Req() req: any,
+    @Body() commentDto: CommentDto,
+  ) {
+    return this.postService.addComment(
+      post,
+      req.user,
+      commentDto.comment,
+      commentId,
+    );
   }
 }
