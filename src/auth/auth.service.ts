@@ -38,7 +38,7 @@ export class AuthService {
     if (!user)
       return new UnauthorizedException('User credentials do not match');
 
-    const comparePassword = await bcrypt.compare(user.password, password);
+    const comparePassword = await bcrypt.compare(password, user.password);    
     if (!comparePassword)
       return new UnauthorizedException('User credentials do not match');
 
