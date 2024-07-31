@@ -29,15 +29,21 @@ export class PostService {
 
     const postImage = await this.cloudinary.uploadImage(file);
 
-    const post = { ...data, userId, Image: postImage.url };
+    const post = { ...data, user: userId, Image: postImage.url };
     await this.postModel.create(post);
 
     return { message: 'new post created', post };
   }
 
-  async allPost(filter: any) {
-    const query = { isDeleted: false };
-
+  async allPost(category?: string) {
+    const query: { category?: string; isDeleted: boolean } = {
+      isDeleted: false,
+    };
+    if (category) {
+      if (!mongoose.isValidObjectId(category))
+        return new NotFoundException('Category not found');
+      query.category = category;
+    }
     return await this.postModel.find(query);
   }
 
@@ -46,8 +52,8 @@ export class PostService {
       return new NotFoundException('Post not found');
 
     return await this.postModel
-      .findById(postId)
-      .populate({ path: 'userId', select: 'imaage username' })
+      .findById(postId, '-isDeleted')
+      .populate({ path: 'user', select: 'imaage username' })
       .populate({ path: 'category', select: 'name' });
   }
 
@@ -63,7 +69,7 @@ export class PostService {
     this.verifyUser(userId, postId);
 
     if (file) data.image = (await this.cloudinary.uploadImage(file)).url;
-    await this.postModel.findByIdAndDelete(postId, { data });
+    await this.postModel.findByIdAndUpdate(postId, { ...data });
 
     return { message: 'Post updated ' };
   }
@@ -76,7 +82,7 @@ export class PostService {
 
     await this.postModel.findByIdAndDelete(postId, { isDeleted: true });
 
-    return { message: 'Post deleted' };
+    return;
   }
 
   async postReaction(userId: string, postId: string, reaction: boolean) {
@@ -139,7 +145,7 @@ export class PostService {
   protected async verifyUser(userId: string, postId: string) {
     const user = new Types.ObjectId(userId);
     const post = await this.postModel.findById(postId, 'user');
-    if (post.user !== user)
+    if (post?.user !== user)
       return new ForbiddenException('Operation not allowed');
   }
 }

@@ -13,7 +13,7 @@ export class AuthGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers['authorization'];
+    const authHeader = request.headers['authorization'];    
     if (!authHeader) return false;
 
     const token = (authHeader as string).split(' ')[1];
@@ -28,24 +28,3 @@ export class AuthGuard implements CanActivate {
   }
 }
 
-@Injectable()
-export class UserGuard implements CanActivate {
-  constructor(
-    @InjectModel(Post.name) private readonly postModel: Model<Post>,
-    private postId: string,
-  ) {}
-
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    const request = context.switchToHttp().getRequest();
-    try {
-      this.postModel.findById(this.postId, 'user').then((post) => {
-        if (request.user === this.postId) return true;
-        return false;
-      });
-    } catch (error) {
-      return false;
-    }
-  }
-}

@@ -4,6 +4,8 @@ import {
   Delete,
   FileTypeValidator,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseFilePipe,
   Post,
@@ -16,7 +18,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CommentDto, NewPostDto, UpdatePostDto } from './post.dto';
 import { PostService } from './post.service';
-import { AuthGuard, UserGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from 'src/auth/auth.guard';
 import { Request } from 'express';
 
 @Controller('post')
@@ -39,9 +41,9 @@ export class PostController {
     return this.postService.newPost(req.user, newPostDto, file);
   }
 
-  @Get()
+  @Get('')
   allPost(@Req() req: Request) {
-    return this.postService.allPost(req.query);
+    return this.postService.allPost(req.query.category as string);
   }
 
   @Get(':id')
@@ -49,26 +51,23 @@ export class PostController {
     return this.postService.post(id);
   }
 
-  @Put('update/:id')
+  @Put(':id')
   @UseGuards(AuthGuard)
   updatePost(
     @Body() updatePostDto: UpdatePostDto,
-    @Param() id: string,
+    @Param() post: { id: string },
     @Req() req: any,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [new FileTypeValidator({ fileType: 'image/*' })],
-      }),
-    )
+    @UploadedFile()
     file: Express.Multer.File,
   ) {
-    return this.postService.updatePost(id, updatePostDto, req.user, file);
+    return this.postService.updatePost(post.id, updatePostDto, req.user, file);
   }
 
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   @UseGuards(AuthGuard)
-  deletePost(@Param() id: string, @Req() req: any) {
-    return this.postService.deletePost(id, req.user);
+  deletePost(@Param() post: { id: string }, @Req() req: any) {
+    return this.postService.deletePost(post.id, req.user);
   }
 
   @Post(':postId/reaction/:reaction')
