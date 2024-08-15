@@ -18,7 +18,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CommentDto, NewPostDto, UpdatePostDto } from './post.dto';
 import { PostService } from './post.service';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard, ValidatePost } from 'src/auth/auth.guard';
 import { Request } from 'express';
 
 @Controller('post')
@@ -52,6 +52,7 @@ export class PostController {
   }
 
   @Put(':id')
+  @UseGuards(ValidatePost)
   @UseGuards(AuthGuard)
   updatePost(
     @Body() updatePostDto: UpdatePostDto,
@@ -65,6 +66,7 @@ export class PostController {
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
+  @UseGuards(ValidatePost)
   @UseGuards(AuthGuard)
   deletePost(@Param() post: { id: string }, @Req() req: any) {
     return this.postService.deletePost(post.id, req.user);

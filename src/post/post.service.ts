@@ -66,7 +66,7 @@ export class PostService {
     if (!mongoose.isValidObjectId(postId))
       return new NotFoundException('Post not found');
 
-    this.verifyUser(userId, postId);
+    // this.verifyUser(userId, postId);
 
     if (file) data.image = (await this.cloudinary.uploadImage(file)).url;
     await this.postModel.findByIdAndUpdate(postId, { ...data });
@@ -78,7 +78,7 @@ export class PostService {
     if (!mongoose.isValidObjectId(postId))
       return new NotFoundException('Post not found');
 
-    this.verifyUser(userId, postId);
+    // this.verifyUser(userId, postId);
 
     await this.postModel.findByIdAndDelete(postId, { isDeleted: true });
 
